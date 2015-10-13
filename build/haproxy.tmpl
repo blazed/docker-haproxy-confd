@@ -34,6 +34,14 @@ defaults
     timeout queue             1m
     backlog                10000
 
+listen stats :1936
+  mode http
+  stats enable
+  stats show-node
+  stats show-legends
+  stats refresh 20s
+  stats uri /
+
 frontend www_http
     bind *:80
     reqadd X-Forwarded-Proto:\ http
@@ -64,7 +72,6 @@ frontend www_http
 backend {{ base $service }}_cluster
   balance roundrobin
   cookie SERVERID insert indirect
-  {{ $endpoints := printf "/services/%s/*" $service }}{{ range gets $endpoints }}
-  {{ $id := printf .Key }}{{ with dir $id }}
+  {{ $endpoints := printf "/services/%s/*" $service }}{{ range gets $endpoints }}{{ $id := printf .Key }}{{ with dir $id }}
   server {{ base $service }}-{{ base $id  }} {{ getv $id }} cookie {{ base $service }}-{{ base $id }} check{{ end }}{{ end }}{{ end }}
 {{end}}
