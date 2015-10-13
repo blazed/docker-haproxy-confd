@@ -35,25 +35,6 @@ defaults
     timeout queue             1m
     backlog                10000
 
-listen stats :1936
-    mode http
-    option dontlog-normal
-    stats enable
-    stats scope www_http
-    {{ range $backend := lsdir "/backend" }}
-    stats scope {{ base $backend }}_cluster
-    {{ end }}
-
-    stats show-node
-    stats show-legends
-    stats refresh 20s
-    stats uri /
-
-    acl white_list src 127.0.0.1 {{ getv "/stats/white_list" }}
-    tcp-request inspect-delay 2s
-    tcp-request content accept if white_list
-    tcp-request content reject
-
 frontend www_http
     bind *:80
     reqadd X-Forwarded-Proto:\ http
@@ -63,8 +44,8 @@ frontend www_http
     {{if lsdir "/haproxy/hosts/"}}
     {{ range $host := lsdir "/haproxy/hosts/" }}
     {{ $server := base $host }}
-    {{ $proxy_path := printf "/haprox/hosts/%s/upstream" }}
-    {{ $server_name := getv $proxy_path }}
+    {{ $proxy_path := printf "/haproxy/hosts/%s/upstream" $server }}
+    {{ $service_name := getv $proxy_path }}
     {{ $service_path := printf "/services/%s/" $service_name }}
     {{ if ls $service_path }}
     acl host_{{$service_name}} hdr(host) -i {{$host}}
@@ -80,13 +61,16 @@ frontend www_http
     {{ end }}
 
 {{if lsdir "/services/"}}
-{{rance $service := lsdir "/services/"}}
-backend {{ base $service }}_cluster
-    balance roundrobin
-    cookie SERVERID insert indirect
-    {{ $endpoints := printf "/services/%s/*" $service }}{{ range gets $endpoints }}
-    {{ $id := printf .Key }}{{ with dir $id }}
-    server {{ base $service }}-{{ base $id  }} {{ getv $id }} cookie {{ base $service }}-{{ base $id }} check
-    {{ end }}
-    {{ end }}
-{{ end }}
+  {{range $service := lsdir "/services/"}}
+  backend {{ base $service }}_cluster
+  balance roundrobin
+  cookie SERVERID insert indirect
+  {{ $endpoints := printf "/services/%s/*" $service }}{{ range gets $endpoints }}
+  {{ $id := printf .Key }}{{ with dir $id }}
+  server {{ base $service }}-{{ base $id  }} {{ getv $id }} cookie {{ base $service }}-{{ base $id }} check
+  # id {{ base $id }}
+  # service {{ base $service }}
+  {{ end }}
+  {{ end }}
+  {{ end }}
+{{end}}

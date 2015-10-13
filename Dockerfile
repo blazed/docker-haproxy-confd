@@ -9,7 +9,7 @@ RUN \
   chown haproxy: /var/log/haproxy.log
 
 ADD build/haproxy.toml /etc/confd/conf.d/haproxy.toml
-ADD build/haproxy.tmpl /etc/confd/conf.d/haproxy.tmpl
+ADD build/haproxy.tmpl /etc/confd/templates/haproxy.tmpl
 
 WORKDIR /usr/local/bin/
 RUN \
