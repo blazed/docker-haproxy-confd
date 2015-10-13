@@ -61,15 +61,10 @@ frontend www_http
 
 {{if lsdir "/services/"}}
   {{range $service := lsdir "/services/"}}
-  backend {{ base $service }}_cluster
+backend {{ base $service }}_cluster
   balance roundrobin
   cookie SERVERID insert indirect
   {{ $endpoints := printf "/services/%s/*" $service }}{{ range gets $endpoints }}
   {{ $id := printf .Key }}{{ with dir $id }}
-  server {{ base $service }}-{{ base $id  }} {{ getv $id }} cookie {{ base $service }}-{{ base $id }} check
-  # id {{ base $id }}
-  # service {{ base $service }}
-  {{ end }}
-  {{ end }}
-  {{ end }}
+  server {{ base $service }}-{{ base $id  }} {{ getv $id }} cookie {{ base $service }}-{{ base $id }} check{{ end }}{{ end }}{{ end }}
 {{end}}
