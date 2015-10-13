@@ -4,7 +4,7 @@ MAINTAINER Boberg <blazed@darkstar.se>
 ENV CONFD_VERSION 0.10.0
 
 RUN \
-  apk add --update haproxy curl && rm -rf /var/cache/apk/* &&\
+  apk add --update bash haproxy curl && rm -rf /var/cache/apk/* &&\
   touch /var/log/haproxy.log &&\
   chown haproxy: /var/log/haproxy.log
 
